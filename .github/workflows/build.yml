@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -31,9 +33,19 @@ jobs:
       - name: Build & assemble dist
         run: npm run deploy
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Zip dist
+        run: zip -r random-video-player.zip dist/
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
         with:
-          name: random-video-player
-          path: dist/
-          retention-days: 30
+          tag_name: latest
+          name: Latest Build
+          body: |
+            Automated build from commit ${{ github.sha }}.
+            Download `random-video-player.zip`, unzip, and copy the contents to your NAS. Then run:
+            ```
+            sh start.sh
+            ```
+          files: random-video-player.zip
+          make_latest: true
