@@ -174,15 +174,15 @@ export default function Page() {
 
             {/* ── Section 2: Video list ── */}
             {allVideos.length > 0 && (
-                <section className="w-full bg-zinc-900 px-6 py-10">
+                <section className="w-full bg-zinc-900" style={{ padding: '40px 24px' }}>
                     {/* Header */}
-                    <div className="flex items-baseline gap-3 mb-6">
+                    <div className="flex items-baseline" style={{ gap: '12px', marginBottom: '24px' }}>
                         <h2 className="text-white text-xl font-semibold tracking-wide">All Videos</h2>
                         <span className="text-zinc-500 text-sm">{allVideos.length} files</span>
                     </div>
 
                     {/* 2-column grid */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2" style={{ gap: '16px' }}>
                         {allVideos.map((filename) => {
                             const isPlaying = filename === currentFilename;
                             return (
@@ -190,13 +190,14 @@ export default function Page() {
                                     key={filename}
                                     onClick={() => loadVideo(filename)}
                                     title={filename}
+                                    style={{ padding: '16px 20px' }}
                                     className={[
-                                        'w-full text-left rounded-xl px-5 py-4 transition cursor-pointer',
+                                        'w-full text-left rounded-xl transition cursor-pointer',
                                         'bg-zinc-800 hover:bg-zinc-700 active:scale-[0.98]',
                                         isPlaying ? 'ring-2 ring-white/60 text-white' : 'text-zinc-300',
                                     ].join(' ')}
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center" style={{ gap: '12px' }}>
                                         {/* Playing indicator */}
                                         {isPlaying ? (
                                             <svg
