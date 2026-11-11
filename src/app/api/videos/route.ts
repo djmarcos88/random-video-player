@@ -1,15 +1,33 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { getShowByPath, scanVideoFiles } from '@/lib/shows'
 
-const VIDEO_EXTENSIONS = new Set(['.mp4', '.webm', '.mov', '.mkv', '.avi', '.m4v'])
+export const dynamic = 'force-dynamic'
 
-export async function GET() {
-  const videoDir = process.env.VIDEO_DIR
+export async function GET(request: NextRequest) {
+  const showParam = request.nextUrl.searchParams.get('show')
+
+  let videoDir: string | undefined
+  let showMeta: { path: string; title: string; image: string } | undefined
+
+  if (showParam) {
+    const show = getShowByPath(showParam)
+    if (!show) {
+      return NextResponse.json(
+        { error: `Show "${showParam}" was not found in shows.json.` },
+        { status: 404 }
+      )
+    }
+    videoDir = show.folder
+    showMeta = { path: show.path, title: show.title, image: show.image }
+  } else {
+    videoDir = process.env.VIDEO_DIR
+  }
 
   if (!videoDir) {
     return NextResponse.json(
-      { error: 'VIDEO_DIR is not configured. Set it in .env.local.' },
+      { error: 'No video folder configured for this show. Check shows.json.' },
       { status: 500 }
     )
   }
@@ -18,23 +36,14 @@ export async function GET() {
 
   if (!fs.existsSync(absDir)) {
     return NextResponse.json(
-      { error: `Video directory not found: ${absDir}` },
+      { error: `Video directory not found: ${absDir}`, show: showMeta },
       { status: 500 }
     )
   }
 
-  let filenames: string[]
-  try {
-    filenames = fs
-      .readdirSync(absDir)
-      .filter((f) => VIDEO_EXTENSIONS.has(path.extname(f).toLowerCase()))
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to read video directory.' },
-      { status: 500 }
-    )
-  }
+  const filenames = scanVideoFiles(absDir).sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })
+  )
 
-  return NextResponse.json({ filenames })
+  return NextResponse.json({ filenames, show: showMeta })
 }

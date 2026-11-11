@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-
-const VIDEO_EXTENSIONS = new Set(['.mp4', '.webm', '.mov', '.mkv', '.avi', '.m4v'])
+import { getShowByPath, VIDEO_EXTENSIONS } from '@/lib/shows'
 
 const MIME_TYPES: Record<string, string> = {
   '.mp4': 'video/mp4',
@@ -14,34 +13,47 @@ const MIME_TYPES: Record<string, string> = {
 }
 
 export async function GET(request: NextRequest) {
-  const videoDir = process.env.VIDEO_DIR
+  const { searchParams } = new URL(request.url)
+  const showParam = searchParams.get('show')
+  const file = searchParams.get('file')
+
+  let videoDir: string | undefined
+  if (showParam) {
+    const show = getShowByPath(showParam)
+    if (!show) {
+      return NextResponse.json(
+        { error: `Show "${showParam}" was not found in shows.json.` },
+        { status: 404 }
+      )
+    }
+    videoDir = show.folder
+  } else {
+    videoDir = process.env.VIDEO_DIR
+  }
 
   if (!videoDir) {
     return NextResponse.json(
-      { error: 'VIDEO_DIR is not configured.' },
+      { error: 'No video folder configured for this show.' },
       { status: 500 }
     )
   }
-
-  const { searchParams } = new URL(request.url)
-  const file = searchParams.get('file')
 
   if (!file) {
     return NextResponse.json({ error: 'Missing file parameter.' }, { status: 400 })
   }
 
-  // Security: strip any path components — only allow bare filenames
-  const basename = path.basename(file)
-  const ext = path.extname(basename).toLowerCase()
+  // Normalize path separators to prevent directory traversal
+  const normalizedFile = path.normalize(file).replace(/^(\.\.(\/|\\|$))+/, '')
+  const ext = path.extname(normalizedFile).toLowerCase()
 
   if (!VIDEO_EXTENSIONS.has(ext)) {
     return NextResponse.json({ error: 'File type not allowed.' }, { status: 403 })
   }
 
   const absDir = path.resolve(videoDir)
-  const filePath = path.join(absDir, basename)
+  const filePath = path.resolve(absDir, normalizedFile)
 
-  // Ensure the resolved path stays within VIDEO_DIR
+  // Ensure the resolved path stays within the configured video directory
   if (!filePath.startsWith(absDir + path.sep) && filePath !== absDir) {
     return NextResponse.json({ error: 'Access denied.' }, { status: 403 })
   }

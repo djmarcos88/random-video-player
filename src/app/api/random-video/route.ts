@@ -1,15 +1,31 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { getShowByPath, scanVideoFiles } from '@/lib/shows'
 
-const VIDEO_EXTENSIONS = new Set(['.mp4', '.webm', '.mov', '.mkv', '.avi', '.m4v'])
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-export async function GET() {
-  const videoDir = process.env.VIDEO_DIR
+export async function GET(request: NextRequest) {
+  const showParam = request.nextUrl.searchParams.get('show')
+
+  let videoDir: string | undefined
+  if (showParam) {
+    const show = getShowByPath(showParam)
+    if (!show) {
+      return NextResponse.json(
+        { error: `Show "${showParam}" was not found in shows.json.` },
+        { status: 404 }
+      )
+    }
+    videoDir = show.folder
+  } else {
+    videoDir = process.env.VIDEO_DIR
+  }
 
   if (!videoDir) {
     return NextResponse.json(
-      { error: 'VIDEO_DIR is not configured. Set it in .env.local.' },
+      { error: 'No video folder configured for this show. Check shows.json.' },
       { status: 500 }
     )
   }
@@ -23,17 +39,7 @@ export async function GET() {
     )
   }
 
-  let files: string[]
-  try {
-    files = fs
-      .readdirSync(absDir)
-      .filter((f) => VIDEO_EXTENSIONS.has(path.extname(f).toLowerCase()))
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to read video directory.' },
-      { status: 500 }
-    )
-  }
+  const files = scanVideoFiles(absDir)
 
   if (files.length === 0) {
     return NextResponse.json(
@@ -44,5 +50,12 @@ export async function GET() {
 
   const filename = files[Math.floor(Math.random() * files.length)]
 
-  return NextResponse.json({ filename })
+  return NextResponse.json(
+    { filename },
+    {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      },
+    }
+  )
 }

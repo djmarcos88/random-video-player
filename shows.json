@@ -1,0 +1,14 @@
+[
+    {
+        "path": "simpsons",
+        "title": "The Simpsons",
+        "image": "/shows/simpsons.jpg",
+        "folder": "C:\\Users\\adkia\\Downloads\\Simpsons Latino temporada 1 a 14"
+    },
+    {
+        "path": "futurama",
+        "title": "Futurama",
+        "image": "/shows/futurama.jpg",
+        "folder": "C:\\Users\\adkia\\Downloads\\Futurama"
+    }
+]

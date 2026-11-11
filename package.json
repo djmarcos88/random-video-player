@@ -3,11 +3,11 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "next dev",
+        "dev": "next dev -p 5150",
         "build": "next build",
-        "start": "next start",
+        "start": "next start -p 5150",
         "lint": "eslint",
-        "deploy": "next build && rm -rf ./dist && cp -r .next/standalone ./dist && cp -r .next/static ./dist/.next/static && cp -r public ./dist/public && cp .env.local ./dist/.env.local && cp start.sh ./dist/start.sh && echo 'Done — copy ./dist to your NAS and run: sh start.sh'"
+        "deploy": "next build && rm -rf ./dist && cp -r .next/standalone ./dist && cp -r .next/static ./dist/.next/static && cp -r public ./dist/public && cp shows.json ./dist/shows.json && cp .env.local ./dist/.env.local && cp start.sh ./dist/start.sh && cp start.bat ./dist/start.bat && echo 'Done — copy ./dist to your NAS and run: sh start.sh'"
     },
     "dependencies": {
         "next": "16.2.6",
