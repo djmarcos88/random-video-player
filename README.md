@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📺 Random Video Player
 
-## Getting Started
+A sleek, self-hosted web app built with Next.js 16 to play random episodes from your local TV show collections on demand.
 
-First, run the development server:
+Designed for couch-friendly viewing, local media servers, or home NAS setups (Synology, TrueNAS, unRAID, Windows, Linux).
+
+---
+
+## ✨ Features
+
+- **Show Selector Hub (`/`)**: Flashy, modern Netflix/streaming-style cards with cover artwork, episode count badges, smooth hover effects, and ambient glow.
+- **Random Episode Roulette (`/[show]`)**: Instantly picks and plays a random episode from the chosen show on page load or button click.
+- **Full Season / Subfolder Support**: Scans subfolders recursively (e.g., `Season 1`, `Season 2`, `S01`, `S02`), so your show folder structure can stay organized while still picking from all available episodes.
+- **Fullscreen Theater Mode**:
+  - Auto-hiding **Next** button and **← Shows** navigation.
+  - Video range-request streaming (`206 Partial Content`) for instant seeking and smooth scrubbing.
+  - Formats supported: `.mp4`, `.mkv`, `.webm`, `.mov`, `.avi`, `.m4v`.
+- **Complete Episode Browser**: Scroll down below the player to view the full library of episodes for that show and play any specific file directly.
+- **Standalone & NAS Ready**: Pre-configured for lightweight standalone deployment with built-in startup scripts (`start.sh` / `start.bat`).
+
+---
+
+## 🚀 Quick Start
+
+### 1. Clone & Install
+
+```bash
+git clone https://github.com/djmarcos88/random-video-player.git
+cd random-video-player
+npm install
+```
+
+### 2. Configure Shows (`shows.json`)
+
+Shows are configured in [`shows.json`](shows.json) at the root of the project:
+
+```json
+[
+  {
+    "path": "simpsons",
+    "title": "The Simpsons",
+    "image": "/shows/simpsons.jpg",
+    "folder": "C:\\Users\\yourname\\Videos\\The Simpsons"
+  },
+  {
+    "path": "futurama",
+    "title": "Futurama",
+    "image": "/shows/futurama.jpg",
+    "folder": "/volume1/video/Futurama"
+  }
+]
+```
+
+- `path`: URL subpath for the show (e.g., `simpsons` → `http://localhost:5150/simpsons`).
+- `title`: Display title shown on cards and the player.
+- `image`: Path to the poster/cover image (place custom images in `public/shows/`).
+- `folder`: Absolute path to the folder on your host machine or NAS.
+
+> **Tip:** `shows.json` is read at runtime, so you can add new shows or change directories anytime without rebuilding!
+
+### 3. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:5150](http://localhost:5150) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Production & Deployment (NAS / Server)
 
-## Learn More
+### Local Production Build
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+npm run start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Deploying to a NAS / Remote Server
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Run the deploy build script:
 
-## Deploy on Vercel
+```bash
+npm run deploy
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This compiles a self-contained Next.js standalone bundle into `./dist/` containing:
+- Standalone Node.js server (`server.js`)
+- Static assets & cover images (`public/`)
+- Current show configuration (`shows.json`)
+- Launch scripts (`start.sh` for Linux/NAS, `start.bat` for Windows)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Copy the `./dist` folder to your target device and run:
+
+**Linux / Synology NAS / Docker host:**
+```bash
+sh start.sh
+```
+
+**Windows Host:**
+```cmd
+start.bat
+```
+
+The server runs by default on port `5150` (configurable via `PORT` environment variable).
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** [Next.js 16](https://nextjs.org) (App Router, Turbopack)
+- **UI:** [React 19](https://react.dev), [Tailwind CSS v4](https://tailwindcss.com)
+- **Streaming:** Native Node.js stream pipeline with HTTP `Range` header support
